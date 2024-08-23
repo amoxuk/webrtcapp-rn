@@ -112,27 +112,58 @@ function App() {
     backgroundColor: "#fff"
   };
   var pc = new RTCPeerConnection();
-
+  function modifySDPToPreferH265(sdp) {
+    return sdp
+  }
   function onPressWebRTC() {
 
     mediaDevices.getUserMedia({
-      audio: false,
-      video: true
+      audio: true,
+      video: { width: { exact: 1280 }, height: { exact: 720 } }
     }).then(data => {
       setLocalStream(data)
       // $$$$$$$$$$$$$$$$$$$$$$$$$
       // pc = ;
       pc.close()
       pc = new RTCPeerConnection();
+      // let sender = pc.getSenders()[0];
+      // let param = sender.getParameters();
+      // console.log(param);
+      console.log('pc', pc);
+
+      // param.encodings[0].codec = codec;
+      // sender.setParameters(param).then(() => {
+      //   console.log("change encoder suc");
+      // }).catch((err) => {
+      //   console.log("change encoder fail");
+      // })
       // 2. 将本地视频流添加到实例中
       data.getTracks().forEach((track) => {
         console.log('add track:', track);
+        console.log('add track data:', data);
         // track.applyConstraints()
+        if (track.kind === 'video') {
+          console.log('track. set',
+            track.getSettings(),
+          );
+          // track.contentHint = 'detail/text'
+          // track.contentHint = hint
+          // track.contentHint = hint
+        }
         pc.addTrack(track, data);
       });
       // pc.localDescription.
-      pc.createOffer().then(offer => {
-        pc.setLocalDescription(offer)
+      pc.createOffer({
+        mandatory: {
+          OfferToReceiveAudio: false,
+          OfferToReceiveVideo: true,
+          VoiceActivityDetection: false
+        }
+      }).then(offer => {
+        let modifiedSDP = modifySDPToPreferH265(offer.sdp);
+        pc.setLocalDescription({ type: offer.type, sdp: modifiedSDP });
+        return { type: offer.type, sdp: modifiedSDP }
+      }).then(offer => {
         console.log("self desc:", offer)
         fetch(`${url}`, {
           method: 'post',
@@ -147,6 +178,16 @@ function App() {
             });
             console.log("sever answer dsp:", res)
             pc.setRemoteDescription(answer);
+            pc.getSenders().forEach((sender) => {
+              console.log('sender', sender);
+              if (sender.track?.kind ==='video') {
+                console.log('param',sender._rtpParameters);
+                console.log('param encodings',sender._rtpParameters.encodings);
+                sender._rtpParameters.degradationPreference = 'maintain-resolution'
+                sender.setParameters(sender._rtpParameters)
+              }
+            
+            });
           })
       });
       // $$$$$$$$$$$$$$$$$$$$$$$$$

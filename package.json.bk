@@ -14,12 +14,12 @@
     "crc-32": "^1.2.2",
     "crypto-js": "^4.2.0",
     "fetch-intercept": "^2.4.0",
-    "ffmpeg-kit-react-native": "^6.0.2",
     "jsdom": "^24.1.1",
     "jsencrypt": "^3.3.2",
     "react": "18.2.0",
     "react-native": "0.74.3",
-    "react-native-webrtc": "^124.0.3",
+    "react-native-vision-camera": "^4.5.1",
+    "react-native-worklets-core": "^1.0.0",
     "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
